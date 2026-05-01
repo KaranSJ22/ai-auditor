@@ -1,6 +1,6 @@
 # AIAuditor
 
-**A terminal-native, AI-powered DevSecOps engine built for the Breaking Apps Hackathon.**
+**A terminal-native, AI-powered DevSecOps engine.**
 
 The AIAuditor bridges the gap between local development, remote CI/CD pipelines, and generative AI. It eliminates context-switching by allowing developers to push code, monitor GitHub Actions live, and receive automated, AI-driven security remediation directly inside their terminal.
 
