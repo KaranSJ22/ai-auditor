@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { saveCredentials, getCredentials } from '../config/vault.js';
 
 export async function initCommand() {
-    console.log(chalk.blue.bold('\n🔒 Initializing DevSecOps Credential Vault\n'));
+    console.log(chalk.blue.bold('\n Initializing DevSecOps Credential Vault\n'));
 
     const existingCreds = getCredentials();
 
@@ -27,8 +27,8 @@ export async function initCommand() {
     saveCredentials(answers.githubPat, answers.geminiKey);
 
     if (answers.githubPat || answers.geminiKey) {
-        console.log(chalk.green('\n✅ Credentials securely stored locally.'));
+        console.log(chalk.green('\n Credentials securely stored locally.'));
     } else {
-        console.log(chalk.yellow('\n⚡ Credentials already exist in the vault. Ready to go!'));
+        console.log(chalk.yellow('\n Credentials already exist in the vault. Ready to go!'));
     }
 }

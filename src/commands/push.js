@@ -1,17 +1,21 @@
+
 import ora from 'ora';
 import chalk from 'chalk';
-import boxen from 'boxen';
+import { saveReportToDisk } from '../utils/fileSystem.js';
+import { runLocalDastScan } from '../core/scanner.js';
 import { getGitDetails, pushCode, getOctokit, getLatestWorkflowRun, getFailedJobLog } from '../core/github.js';
 import { analyzeFailureLog } from '../core/ai.js';
+import { createLoadingSpinner } from '../ui/spinners.js';
+import { renderSecurityReport } from '../ui/reports.js';
 
-export async function pushCommand() {
-    console.log(chalk.blue.bold('\n🚀 Initiating Unified Secure Push...\n'));
+export async function pushCommand(targetUrl) {
+    console.log(chalk.blue.bold('\n Initiating Unified Secure Push...\n'));
 
     let gitDetails;
     try {
         gitDetails = await getGitDetails();
     } catch (err) {
-        console.log(chalk.red(`❌ Git Error: ${err.message}`));
+        console.log(chalk.red(`Git Error: ${err.message}`));
         return;
     }
 
@@ -51,12 +55,45 @@ export async function pushCommand() {
 
             if (status === 'completed') {
                 clearInterval(interval);
-                if (conclusion === 'success') {
-                    pollSpinner.succeed(chalk.green('✅ Build Passed! Infrastructure Healthy.'));
-                } else {
+               if (conclusion === 'success') {
+                    pollSpinner.succeed(chalk.green('✅ Build Passed. CI/CD Infrastructure Healthy.'));
+                    
+                    const dastSpinner = ora('Initiating Post-Deployment DAST Scan via OWASP ZAP Docker...').start();
+                    
+                    try {
+                        // THIS MUST BE IN A TRY BLOCK
+                        // It will throw an error if vulnerabilities are found
+                        await runLocalDastScan(targetUrl || 'http://localhost:3000');
+                        dastSpinner.succeed(chalk.green('✅ DAST Scan Passed. Runtime is secure.'));
+                        
+                    } catch (error) {
+                        // WE TRAP THE ERROR HERE
+                        dastSpinner.text = chalk.yellow('DAST Scan Failed! AI analyzing runtime vulnerabilities...');
+                        
+                        try {
+                            // Feed the captured logs directly to Gemini
+                            const dynamicDastResult = await analyzeFailureLog(error.message);
+                            dastSpinner.succeed(chalk.red('AI Vulnerability Analysis Complete.'));
+                            
+                            // Render the UI
+                            const uiBox = renderSecurityReport(dynamicDastResult);
+                            console.log(`\n${uiBox}\n`);
+                            
+                            // Save the Markdown Report
+                            const savedPath = await saveReportToDisk(repo, dynamicDastResult);
+                            if (savedPath) {
+                                console.log(chalk.gray(`📄 Offline DAST audit report saved to: ${savedPath}`));
+                            }
+                        } catch (aiError) {
+                            dastSpinner.fail(chalk.red('AI Failed to parse the logs.'));
+                            console.error(aiError.message);
+                        }
+                    }
+                }else {
                     pollSpinner.fail(chalk.red(`❌ Build Failed! CI/CD error detected in Run ID: ${run.id}`));
 
-                    const aiSpinner = ora('Fetching logs and triggering Gemini AI...').start();
+                    // Use your new UI helper for the AI spinner
+                    const aiSpinner = createLoadingSpinner('Fetching logs and triggering Gemini AI...').start();
 
                     try {
                         // 1. Get the raw text logs from GitHub
@@ -66,26 +103,13 @@ export async function pushCommand() {
                         const aiResult = await analyzeFailureLog(logContent);
                         aiSpinner.succeed(chalk.green('AI Remediation Analysis Complete.'));
 
-                        // 3. Format the Boxen report
-                        const report = `
-                            ${chalk.red.bold('OWASP Category:')} ${aiResult.owaspCategory}
-
-                            ${chalk.white.bold('Explanation:')} 
-                            ${aiResult.explanation}
-
-                            ${chalk.green.bold('Remediation:')}
-                            ${aiResult.remediation}
-                        `;
-
-                        // 4. Render the UI
-                        console.log(boxen(report, {
-                            padding: 1,
-                            margin: 1,
-                            borderStyle: 'double',
-                            borderColor: 'red',
-                            title: '🧠 AI DevSecOps Auditor Report',
-                            titleAlignment: 'center'
-                        }));
+                        // 3. Render and print the refactored UI Report
+                        const uiBox = renderSecurityReport(aiResult);
+                        console.log(`\n${uiBox}\n`);
+                        const savedPath = await saveReportToDisk(repo, aiResult);
+                        if (savedPath) {
+                            console.log(chalk.gray(` Offline report saved to: ${savedPath}`));
+                        }
 
                     } catch (error) {
                         aiSpinner.fail('AI Analysis encountered an error.');
@@ -96,6 +120,10 @@ export async function pushCommand() {
         } catch (err) {
             clearInterval(interval);
             pollSpinner.fail(chalk.red('Failed to fetch Actions status.'));
+            // 🔥 THIS WILL REVEAL THE REAL BUG:
+            console.error(chalk.yellow('\n--- 🐛 UNMASKED ERROR ---'));
+            console.error(err); 
+            console.error(chalk.yellow('--------------------------\n'));
         }
     }, 5000); // 5-second polling interval
 }

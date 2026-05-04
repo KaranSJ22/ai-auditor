@@ -48,31 +48,60 @@ export async function getLatestWorkflowRun(octokit, owner, repo, branch) {
     return data.workflow_runs[0];
 }
 
-export async function getFailedJobLog(octokit, owner, repo, runId) {
-    try {
-        // 1. List all jobs for the specific workflow run
-        const { data: { jobs } } = await octokit.rest.actions.listJobsForWorkflowRun({
-            owner,
-            repo,
-            run_id: runId
-        });
+// export async function getFailedJobLog(octokit, owner, repo, runId) {
+//     try {
+//         // 1. List all jobs for the specific workflow run
+//         const { data: { jobs } } = await octokit.rest.actions.listJobsForWorkflowRun({
+//             owner,
+//             repo,
+//             run_id: runId
+//         });
 
-        // 2. Find the specific job that failed
-        const failedJob = jobs.find(job => job.conclusion === 'failure');
-        if (!failedJob) return "Could not isolate the failed job log.";
+//         // 2. Find the specific job that failed
+//         const failedJob = jobs.find(job => job.conclusion === 'failure');
+//         if (!failedJob) return "Could not isolate the failed job log.";
 
-        // 3. Fetch the raw text log for that job
-        const { data: logData } = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
-            owner,
-            repo,
-            job_id: failedJob.id
-        });
+//         // 3. Fetch the raw text log for that job
+//         const { data: logData } = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
+//             owner,
+//             repo,
+//             job_id: failedJob.id
+//         });
 
-        // Truncate log if it's too massive (to save Gemini token limits)
-        const logString = String(logData);
-        return logString.length > 15000 ? logString.slice(-15000) : logString;
+//         // Truncate log if it's too massive (to save Gemini token limits)
+//         const logString = String(logData);
+//         return logString.length > 15000 ? logString.slice(-15000) : logString;
 
-    } catch (error) {
-        throw new Error(`Failed to download logs: ${error.message}`);
+//     } catch (error) {
+//         throw new Error(`Failed to download logs: ${error.message}`);
+//     }
+// }
+
+export async function getFailedJobLog(octokit, owner, repo, run_id) {
+    // 1. Get all jobs for this specific workflow run
+    const jobsResponse = await octokit.rest.actions.listJobsForWorkflowRun({
+        owner,
+        repo,
+        run_id,
+    });
+
+    // 2. Find the exact job that failed
+    const failedJob = jobsResponse.data.jobs.find(job => job.conclusion === 'failure');
+    
+    if (!failedJob) {
+        throw new Error('Could not find a specifically failed job in this workflow run.');
     }
+
+    // 3. The Anti-Race-Condition Pause 
+    // Give GitHub's servers 2 seconds to finalize and upload the text logs
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // 4. Download the raw text logs using the correct Job ID
+    const logResponse = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
+        owner,
+        repo,
+        job_id: failedJob.id,
+    });
+
+    return logResponse.data;
 }
