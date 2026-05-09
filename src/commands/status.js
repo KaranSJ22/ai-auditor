@@ -4,7 +4,7 @@ import { createLoadingSpinner } from '../ui/spinners.js';
 import { renderWorkflowTable } from '../ui/tables.js';
 
 export async function statusCommand() {
-    console.log(chalk.blue.bold('\n🔍 Fetching CI/CD Pipeline Status...\n'));
+    console.log(chalk.blue.bold('\n Fetching CI/CD Pipeline Status...\n'));
 
     let gitDetails;
     try {

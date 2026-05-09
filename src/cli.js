@@ -1,7 +1,7 @@
 import { program } from 'commander';
 import { initCommand } from './commands/init.js';
 import { pushCommand } from './commands/push.js';
-import { statusCommand } from './commands/status.js'; // <-- NEW IMPORT
+import { statusCommand } from './commands/status.js';
 
 program
   .name('auditor')

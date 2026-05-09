@@ -14,7 +14,7 @@ ${chalk.white(aiResult.remediation)}
     `.trim();
 
     return boxen(reportContent, {
-        title: '🧠 AI DevSecOps Auditor Report',
+        title: 'AI DevSec Auditor Report',
         titleAlignment: 'center',
         padding: 1,
         margin: 1,

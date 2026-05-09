@@ -2,10 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { logger } from './logger.js';
 
-/**
- * Saves the AI DevSecOps report to a local markdown file.
- * Creates an 'audit-reports' directory if it doesn't exist.
- */
+//saves report as markdown file
 export async function saveReportToDisk(repoName, aiResult) {
     try {
         const reportsDir = path.join(process.cwd(), 'audit-reports');
@@ -23,20 +20,20 @@ export async function saveReportToDisk(repoName, aiResult) {
 
         // Format the markdown content
         const markdownContent = `
-# AI DevSecOps Audit Report
-**Date:** ${new Date().toLocaleString()}
-**Repository:** ${repoName}
+            # AI DevSecOps Audit Report
+            **Date:** ${new Date().toLocaleString()}
+            **Repository:** ${repoName}
 
-## Vulnerability Details
-* **OWASP Category:** ${aiResult.owaspCategory}
+            ## Vulnerability Details
+            * **OWASP Category:** ${aiResult.owaspCategory}
 
-### Explanation
-${aiResult.explanation}
+            ### Explanation
+            ${aiResult.explanation}
 
-### Remediation Plan
-\`\`\`
-${aiResult.remediation}
-\`\`\`
+            ### Remediation Plan
+            \`\`\`
+            ${aiResult.remediation}
+            \`\`\`
         `.trim();
 
         await fs.writeFile(filePath, markdownContent, 'utf-8');

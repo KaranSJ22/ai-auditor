@@ -13,7 +13,7 @@ export async function getGitDetails() {
     
     if (!origin) throw new Error("No remote 'origin' found. Is this a cloned git repository?");
 
-    // Dynamically parse owner and repo from the remote URL (supports https and ssh)
+    // Dynamically parse owner and repo from the remote URL this supports https and ssh
     const url = origin.refs.fetch;
     const match = url.match(/github\.com[:/](.+)\/(.+?)(\.git)?$/);
     
@@ -48,34 +48,6 @@ export async function getLatestWorkflowRun(octokit, owner, repo, branch) {
     return data.workflow_runs[0];
 }
 
-// export async function getFailedJobLog(octokit, owner, repo, runId) {
-//     try {
-//         // 1. List all jobs for the specific workflow run
-//         const { data: { jobs } } = await octokit.rest.actions.listJobsForWorkflowRun({
-//             owner,
-//             repo,
-//             run_id: runId
-//         });
-
-//         // 2. Find the specific job that failed
-//         const failedJob = jobs.find(job => job.conclusion === 'failure');
-//         if (!failedJob) return "Could not isolate the failed job log.";
-
-//         // 3. Fetch the raw text log for that job
-//         const { data: logData } = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
-//             owner,
-//             repo,
-//             job_id: failedJob.id
-//         });
-
-//         // Truncate log if it's too massive (to save Gemini token limits)
-//         const logString = String(logData);
-//         return logString.length > 15000 ? logString.slice(-15000) : logString;
-
-//     } catch (error) {
-//         throw new Error(`Failed to download logs: ${error.message}`);
-//     }
-// }
 
 export async function getFailedJobLog(octokit, owner, repo, run_id) {
     // 1. Get all jobs for this specific workflow run

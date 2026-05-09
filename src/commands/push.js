@@ -56,15 +56,14 @@ export async function pushCommand(targetUrl) {
             if (status === 'completed') {
                 clearInterval(interval);
                if (conclusion === 'success') {
-                    pollSpinner.succeed(chalk.green('✅ Build Passed. CI/CD Infrastructure Healthy.'));
+                    pollSpinner.succeed(chalk.green(' Build Passed. CI/CD Infrastructure Healthy.'));
                     
                     const dastSpinner = ora('Initiating Post-Deployment DAST Scan via OWASP ZAP Docker...').start();
                     
                     try {
-                        // THIS MUST BE IN A TRY BLOCK
-                        // It will throw an error if vulnerabilities are found
+                        
                         await runLocalDastScan(targetUrl || 'http://localhost:3000');
-                        dastSpinner.succeed(chalk.green('✅ DAST Scan Passed. Runtime is secure.'));
+                        dastSpinner.succeed(chalk.green(' DAST Scan Passed. Runtime is secure.'));
                         
                     } catch (error) {
                         // WE TRAP THE ERROR HERE
@@ -82,7 +81,7 @@ export async function pushCommand(targetUrl) {
                             // Save the Markdown Report
                             const savedPath = await saveReportToDisk(repo, dynamicDastResult);
                             if (savedPath) {
-                                console.log(chalk.gray(`📄 Offline DAST audit report saved to: ${savedPath}`));
+                                console.log(chalk.gray(` Offline DAST audit report saved to: ${savedPath}`));
                             }
                         } catch (aiError) {
                             dastSpinner.fail(chalk.red('AI Failed to parse the logs.'));
@@ -121,7 +120,7 @@ export async function pushCommand(targetUrl) {
             clearInterval(interval);
             pollSpinner.fail(chalk.red('Failed to fetch Actions status.'));
             // 🔥 THIS WILL REVEAL THE REAL BUG:
-            console.error(chalk.yellow('\n--- 🐛 UNMASKED ERROR ---'));
+            console.error(chalk.yellow('\n---  UNMASKED ERROR ---'));
             console.error(err); 
             console.error(chalk.yellow('--------------------------\n'));
         }

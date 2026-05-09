@@ -18,7 +18,7 @@ export async function analyzeFailureLog(logContent) {
         required: ["owaspCategory", "explanation", "remediation"],
     };
 
-    // We use gemini-1.5-pro as it's excellent for complex code reasoning
+    // Gemini 2.5 flash model
     const model = genAI.getGenerativeModel({ 
         model: "gemini-2.5-flash",
         generationConfig: {

@@ -25,7 +25,6 @@ export async function runLocalDastScan(targetUrl) {
         const zapCommand = `docker run --rm ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${scanUrl} -I`;
 
         // 4. Execute the scan asynchronously
-    // 4. Execute the scan asynchronously
         shell.exec(zapCommand, { silent: true, async: true }, (code, stdout, stderr) => {
             // ZAP Baseline exit codes: 0 = Pass, 1 = Fail (Vulnerabilities found), 2 = Warnings
             if (code === 0 || code === 2) {
@@ -35,7 +34,6 @@ export async function runLocalDastScan(targetUrl) {
                     details: stdout
                 });
             } else {
-                // ✅ FIX: Capture BOTH stdout and stderr so the AI always has data
                 const logs = stdout || stderr || 'No raw logs output by Docker.';
                 reject(new Error(`DAST Scan Failed: Vulnerabilities detected.\n\n${logs}`));
             }
