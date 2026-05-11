@@ -1,10 +1,29 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { getCredentials } from '../config/vault.js';
 
+// Truncate and sanitize log content before sending to AI
+export function sanitizeLogContent(rawLog) {
+    const MAX_LOG_LENGTH = 15000;
+    let log = typeof rawLog === 'string' ? rawLog : String(rawLog);
+
+    // Truncate to the last MAX_LOG_LENGTH characters (tail is most relevant)
+    if (log.length > MAX_LOG_LENGTH) {
+        log = '... [truncated] ...\n' + log.slice(-MAX_LOG_LENGTH);
+    }
+
+    // Strip common prompt injection patterns
+    log = log.replace(/ignore (all |any )?(previous |prior |above )?instructions/gi, '[FILTERED]');
+    log = log.replace(/you are now/gi, '[FILTERED]');
+    log = log.replace(/new instructions:/gi, '[FILTERED]');
+
+    return log;
+}
+
 export async function analyzeFailureLog(logContent) {
     const { geminiKey } = getCredentials();
     if (!geminiKey) throw new Error("Gemini API Key missing from vault.");
 
+    const sanitizedLog = sanitizeLogContent(logContent);
     const genAI = new GoogleGenerativeAI(geminiKey);
     
     // Define the strict JSON schema we want Gemini to return
@@ -33,7 +52,7 @@ export async function analyzeFailureLog(logContent) {
     Identify the security vulnerability, map it to an OWASP Top 10 category, and provide a fix.
     
     FAILURE LOG:
-    ${logContent}
+    ${sanitizedLog}
     `;
 
     try {

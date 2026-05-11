@@ -26,8 +26,10 @@ test('File System: saveReportToDisk should create a markdown file', async () => 
         assert.ok(fileContent.includes('test-repo'), 'File should contain the repo name');
         assert.ok(fileContent.includes('Test-Category'), 'File should contain the OWASP category');
         
-        // 4. Cleanup (Delete the test file so we don't clutter the system)
+        // 4. Cleanup (Delete the test file and directory so we don't clutter the system)
         await fs.unlink(savedPath);
+        const reportsDir = path.dirname(savedPath);
+        await fs.rmdir(reportsDir);
     } catch (error) {
         assert.fail(`Test file was not created or could not be read: ${error.message}`);
     }

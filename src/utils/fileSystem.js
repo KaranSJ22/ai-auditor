@@ -19,22 +19,22 @@ export async function saveReportToDisk(repoName, aiResult) {
         const filePath = path.join(reportsDir, fileName);
 
         // Format the markdown content
-        const markdownContent = `
-            # AI DevSecOps Audit Report
-            **Date:** ${new Date().toLocaleString()}
-            **Repository:** ${repoName}
-
-            ## Vulnerability Details
-            * **OWASP Category:** ${aiResult.owaspCategory}
-
-            ### Explanation
-            ${aiResult.explanation}
-
-            ### Remediation Plan
-            \`\`\`
-            ${aiResult.remediation}
-            \`\`\`
-        `.trim();
+        const markdownContent = [
+            '# AI DevSecOps Audit Report',
+            `**Date:** ${new Date().toLocaleString()}`,
+            `**Repository:** ${repoName}`,
+            '',
+            '## Vulnerability Details',
+            `* **OWASP Category:** ${aiResult.owaspCategory}`,
+            '',
+            '### Explanation',
+            aiResult.explanation,
+            '',
+            '### Remediation Plan',
+            '```',
+            aiResult.remediation,
+            '```'
+        ].join('\n');
 
         await fs.writeFile(filePath, markdownContent, 'utf-8');
         return filePath;

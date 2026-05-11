@@ -17,5 +17,5 @@ test('UI Helper: renderSecurityReport should contain correct AI data', () => {
     assert.ok(output.includes('A03:2021-Injection'), 'Report must contain the OWASP category');
     assert.ok(output.includes('The code does not sanitize SQL inputs.'), 'Report must contain the explanation');
     assert.ok(output.includes('Use parameterized queries.'), 'Report must contain the remediation');
-    assert.ok(output.includes('🧠 AI DevSecOps Auditor Report'), 'Report must contain the Boxen title');
+    assert.ok(output.includes('AI DevSec Auditor Report'), 'Report must contain the Boxen title');
 });

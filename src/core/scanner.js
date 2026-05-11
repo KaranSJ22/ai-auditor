@@ -1,33 +1,59 @@
-import shell from 'shelljs';
+import { execFile } from 'child_process';
 import { execSync } from 'child_process';
+
 export async function runLocalDastScan(targetUrl) {
     return new Promise((resolve, reject) => {
+
+        //  FIX: Command Injection Prevention
+
+        // We use Node's native URL class to parse and validate the input.
+        // If a user types "http://localhost; ls", new URL() throws a TypeError.
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(targetUrl);
+            if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+                return reject(new Error('Invalid URL protocol. Only http and https are supported.'));
+            }
+        } catch (err) {
+            return reject(new Error(`Security block: Invalid target URL format provided -> ${targetUrl}`));
+        }
+
         // 1. Verify Docker is installed and running
-        if (!shell.which('docker')) {
+        try {
+            execSync('docker --version', { stdio: 'ignore' });
+        } catch {
             return reject(new Error('Docker is not installed or not in PATH.'));
         }
 
-        const dockerCheck = shell.exec('docker info', { silent: true });
-        if (dockerCheck.code !== 0) {
+        try {
+            execSync('docker info', { stdio: 'ignore' });
+        } catch {
             return reject(new Error('Docker daemon is not running. Please start Docker Desktop on Windows.'));
         }
 
-        // 2. Adjust localhost for WSL2/Docker networking
-        let scanUrl = targetUrl;
-        if (scanUrl.includes('localhost') || scanUrl.includes('127.0.0.1')) {
-            scanUrl = scanUrl.replace(/localhost|127\.0\.0\.1/, 'host.docker.internal');
+        // 2. Adjust localhost for WSL2/Docker networking Safely
+        if (parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1') {
+            parsedUrl.hostname = 'host.docker.internal';
         }
 
-        // 3. Construct the OWASP ZAP Docker Command
-        // We use the 'bare' image for speed. zap-baseline.py runs a fast, passive scan.
-        // -t: Target URL
-        // -I: Ignore warnings (only fail the script on actual errors/vulnerabilities)
-        const zapCommand = `docker run --rm ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${scanUrl} -I`;
+        // Safely reconstruct the string after validation
+        const scanUrl = parsedUrl.href;
 
-        // 4. Execute the scan asynchronously
-        shell.exec(zapCommand, { silent: true, async: true }, (code, stdout, stderr) => {
+        // 3. Execute using execFile to avoid shell interpretation entirely.
+        // Each argument is passed directly to the process, preventing injection.
+        const args = [
+            'run', '--rm',
+            'ghcr.io/zaproxy/zaproxy:stable',
+            'zap-baseline.py',
+            '-t', scanUrl,
+            '-I'
+        ];
+
+        // 4. Execute the scan asynchronously using execFile (no shell)
+        const child = execFile('docker', args, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
+            const exitCode = error ? error.code : 0;
             // ZAP Baseline exit codes: 0 = Pass, 1 = Fail (Vulnerabilities found), 2 = Warnings
-            if (code === 0 || code === 2) {
+            if (exitCode === 0 || exitCode === 2) {
                 resolve({
                     success: true,
                     message: 'DAST Scan completed successfully.',

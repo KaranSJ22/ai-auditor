@@ -10,7 +10,7 @@ export async function statusCommand() {
     try {
         gitDetails = await getGitDetails();
     } catch (err) {
-        console.log(chalk.red(`❌ Git Error: ${err.message}`));
+        console.log(chalk.red(` Git Error: ${err.message}`));
         return;
     }
 
@@ -20,7 +20,7 @@ export async function statusCommand() {
     try {
         octokit = getOctokit();
     } catch (err) {
-        console.log(chalk.red(`❌ Auth Error: ${err.message} Run 'auditor init'.`));
+        console.log(chalk.red(` Auth Error: ${err.message} Run 'auditor init'.`));
         return;
     }
 

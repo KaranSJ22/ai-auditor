@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "AI DevSecOps Auditor -Unified TUI",
   "type": "module",
-  "main": "index.js",
+  "main": "src/cli.js",
   "bin": {
     "auditor": "bin/auditor.js"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test tests/**/*.test.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +22,7 @@
     "commander": "^14.0.3",
     "conf": "^15.1.0",
     "inquirer": "^13.4.2",
+    "js-yaml": "^4.1.1",
     "ora": "^9.4.0",
     "shelljs": "^0.10.0",
     "simple-git": "^3.36.0"
