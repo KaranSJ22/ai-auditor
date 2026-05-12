@@ -5,6 +5,7 @@ import { statusCommand } from './commands/status.js';
 import { preflightCommand } from './commands/preflight.js';
 import { resetCommand } from './commands/reset.js';
 import { dsCheckCommand } from './commands/ds-check.js';
+import { attackPathCommand } from './commands/attack-path.js';
 program
   .name('auditor')
   .description('AIAuditor - Unified TUI')
@@ -42,5 +43,10 @@ program
   .command('ds-check')
   .description('Analyze Docker Compose architecture for security risks')
   .action(dsCheckCommand);
+
+program
+  .command('attack-path')
+  .description('Map microservice attack paths and blast radius from Docker Compose')
+  .action(attackPathCommand);
 
 program.parse(process.argv);

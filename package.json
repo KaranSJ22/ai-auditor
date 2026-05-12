@@ -8,7 +8,7 @@
     "auditor": "bin/auditor.js"
   },
   "scripts": {
-    "test": "node --test ./tests/ai.test.js ./tests/ds-check.test.js ./tests/fileSystem.test.js ./tests/logger.test.js ./tests/preflight.test.js ./tests/reports.test.js ./tests/scanner.test.js ./tests/sleep.test.js ./tests/spinners.test.js ./tests/tables.test.js ./tests/vault.test.js"
+    "test": "node --test ./tests/ai.test.js ./tests/attack-path.test.js ./tests/ds-check.test.js ./tests/fileSystem.test.js ./tests/logger.test.js ./tests/preflight.test.js ./tests/reports.test.js ./tests/scanner.test.js ./tests/sleep.test.js ./tests/spinners.test.js ./tests/tables.test.js ./tests/vault.test.js"
   },
   "keywords": [],
   "author": "",

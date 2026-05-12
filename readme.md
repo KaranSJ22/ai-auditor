@@ -18,6 +18,8 @@ The AIAuditor bridges the gap between local development, remote CI/CD pipelines,
 
 -   **Local Preflight Security Scanning:** Scans for exposed secrets, lints Dockerfiles, and runs `npm audit` or Python dependency checks before pushing.
 
+-   **Microservice Attack Path & Blast Radius Audit:** Maps Docker Compose service dependencies, identifies public entry points, flags risky container patterns, and generates Markdown/JSON reports showing which critical assets are reachable if a service is compromised.
+
 ----------
 
 ## Prerequisites
@@ -111,6 +113,8 @@ auditor push
 | `auditor push -t <url>` | Push code and run DAST scan against a custom target URL |
 | `auditor status` | Check recent CI/CD pipeline runs without pushing |
 | `auditor preflight` | Run local security checks (secrets, IaC, SCA) before pushing |
+| `auditor ds-check` | Analyze Docker Compose architecture and generate a Mermaid security map |
+| `auditor attack-path` | Generate a microservice attack path and blast radius report from Docker Compose |
 | `auditor reset` | Clear all stored credentials from the local vault |
 
 ----------
@@ -123,6 +127,9 @@ auditor push
 | `src/core/github.js` | Handles Git operations and utilizes `@octokit/rest` for parsing workflow logs. |
 | `src/core/ai.js` | Integrates `@google/generative-ai` with strict JSON schemas for predictable remediation. |
 | `src/core/scanner.js` | Executes OWASP ZAP Docker DAST scans with injection-safe `child_process.execFile`. |
+| `src/core/serviceGraph.js` | Builds normalized Docker Compose service graphs with ports, dependencies, networks, volumes, and asset metadata. |
+| `src/core/attackPath.js` | Calculates reachable services, high-risk paths, and blast radius scores. |
+| `src/core/riskRules.js` | Applies deterministic microservice security rules for exposed state stores, root containers, host networking, Docker socket mounts, plaintext secrets, and image tags. |
 | `src/config/vault.js` | Manages encrypted local credential storage using AES-256-GCM via `conf`. |
 | `src/ui/` | Reusable UI components: reports (boxen), spinners (ora), tables (cli-table3). |
 | `src/utils/` | Shared utilities for file system operations, logging, and async helpers. |
